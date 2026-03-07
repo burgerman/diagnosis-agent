@@ -82,10 +82,9 @@ The `config.py` file defines the application's settings. These settings can be c
 
 *   `GEMINI_API_KEY`: Your API key for Google Gemini.
 *   `GEMINI_MODEL`: The Gemini model to use (default: `gemini-2.0-flash`).
-*   `MAX_LOG_SNIPPETS`: Maximum number of log snippets to process.
 *   `MAX_CONTEXT_FILES`: Maximum number of context files to retrieve.
 *   `MAX_CONTEXT_EXCERPT_CHARS`: Maximum characters for code excerpts.
-*   `ALLOWED_READ_ROOTS`: Comma-separated list of directories the agent is allowed to read (e.g., `src,services,config`).
+*   `ALLOWED_READ_ROOTS`: Comma-separated list of directories the agent is allowed to read (e.g., `src,app,config,etc,services,scripts,infra,deploy,opt`).
 *   `LOG_DIRECTORY`: The directory where log files are stored (default: `logs`).
 
 ## API Endpoints

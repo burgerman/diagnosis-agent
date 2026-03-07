@@ -8,12 +8,11 @@ class Settings(BaseSettings):
 
     app_name: str = "in-memory-analysis-agent"
     gemini_api_key: str
-    gemini_model: str = "gemini-2.0-flash" # Standardizing for the agent
+    gemini_model: str = "gemini-2.5-flash" # Standardizing for the agent
     
-    max_log_snippets: int = 150
-    max_context_files: int = 8
-    max_context_excerpt_chars: int = 1600
-    allowed_read_roots: str = "src,services,config"
+    max_context_files: int = 10
+    max_context_excerpt_chars: int = 5000
+    allowed_read_roots: str = "src,app,config,etc,services,scripts,infra,deploy,opt"
     log_directory: str = "logs"
     project_root: Path = Field(default_factory=Path.cwd)
 

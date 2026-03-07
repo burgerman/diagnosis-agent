@@ -4,6 +4,9 @@ from fastapi import FastAPI, BackgroundTasks, HTTPException
 from .schemas import UptimeKumaJobCreate, JobCreatedResponse
 from .memory.store import memory_db
 from .core.worker import AgentWorker
+from .config import get_settings
+
+settings = get_settings()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -15,7 +18,7 @@ async def lifespan(app: FastAPI):
     await task
 
 worker = AgentWorker()
-app = FastAPI(title="Reasoning Agent API (In-Memory)", lifespan=lifespan)
+app = FastAPI(title=settings.app_name, lifespan=lifespan)
 
 @app.post("/api/v1/jobs", response_model=JobCreatedResponse)
 async def create_job(payload: UptimeKumaJobCreate):
