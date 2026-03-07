@@ -1,0 +1,26 @@
+# Byte-code files
+*.pyc
+__pycache__/
+
+# Dependencies
+.venv/
+env/
+venv/
+pip-wheel-metadata/
+.Python
+.python-version
+
+# IDE-specific files
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# OS-specific files
+.DS_Store
+.Trashes
+Thumbs.db
+
+# My stuff
+.env
+uv.lock
