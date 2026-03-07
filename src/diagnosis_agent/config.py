@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     max_context_files: int = 8
     max_context_excerpt_chars: int = 1600
     allowed_read_roots: str = "src,services,config"
+    log_directory: str = "logs"
     project_root: Path = Field(default_factory=Path.cwd)
 
     @property

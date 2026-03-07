@@ -1,15 +1,21 @@
 import asyncio
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, BackgroundTasks, HTTPException
 from .schemas import UptimeKumaJobCreate, JobCreatedResponse
 from .memory.store import memory_db
 from .core.worker import AgentWorker
 
-app = FastAPI(title="Reasoning Agent API (In-Memory)")
-worker = AgentWorker()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup: Create the worker task
+    task = asyncio.create_task(worker.run())
+    yield
+    # Shutdown: Signal the worker to stop and wait for it
+    await worker.stop()
+    await task
 
-@app.on_event("startup")
-async def startup():
-    asyncio.create_task(worker.run())
+worker = AgentWorker()
+app = FastAPI(title="Reasoning Agent API (In-Memory)", lifespan=lifespan)
 
 @app.post("/api/v1/jobs", response_model=JobCreatedResponse)
 async def create_job(payload: UptimeKumaJobCreate):

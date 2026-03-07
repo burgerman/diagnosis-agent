@@ -1,6 +1,6 @@
 from __future__ import annotations
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel
 
@@ -21,7 +21,7 @@ class MemoryStore:
             "id": job_id,
             "status": "queued",
             "progress": 0,
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
             **data
         }
         self.jobs[job_id] = job
@@ -36,7 +36,7 @@ class MemoryStore:
     def update_job(self, job_id: str, updates: Dict[str, Any]):
         if job_id in self.jobs:
             self.jobs[job_id].update(updates)
-            self.jobs[job_id]["updated_at"] = datetime.utcnow().isoformat()
+            self.jobs[job_id]["updated_at"] = datetime.now(timezone.utc).isoformat()
 
     def get_queued_job(self) -> Optional[Dict[str, Any]]:
         for job in self.jobs.values():
@@ -48,7 +48,7 @@ class MemoryStore:
         job_id = report_data["job_id"]
         self.reports[job_id] = {
             "id": str(uuid.uuid4()),
-            "created_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(timezone.utc).isoformat(),
             **report_data
         }
 

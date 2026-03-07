@@ -1,6 +1,15 @@
 # Diagnosis Agent
 
-A log diagnosis agent that leverages Google's Generative AI to autonomously investigate production incidents, analyze logs, search codebases, and formulate root causes.
+A professional-grade log diagnosis agent that leverages Google's Generative AI to autonomously investigate production incidents, analyze logs, search codebases, and formulate root causes.
+
+## The Mission: Empowering IT Teams
+
+Many local Canadian businesses face a critical shortage of IT manpower. In these environments, non-technical workers often struggle to describe technical issues accurately, leading to vague support tickets that require hours of manual investigation by overstretched IT staff. This communication gap results in long wait times, unresolved technical debt, and significant productivity losses.
+
+**Diagnosis Agent** is designed to solve this by:
+*   **Bridging the Gap:** Translating non-technical descriptions and raw monitoring alerts into precise, evidence-based technical reports.
+*   **Accelerating Triage:** Reducing Mean Time to Recovery (MTTR) by autonomously performing the "heavy lifting" of log scanning and codebase correlation.
+*   **Boosting Productivity:** Providing IT teams with a clear, actionable summary and analysis of root causes, allowing them to focus on remediation rather than manual evidence gathering.
 
 ## Table of Contents
 - [Features](#features)
@@ -12,25 +21,29 @@ A log diagnosis agent that leverages Google's Generative AI to autonomously inve
 
 ## Features
 
-*   **Autonomous Incident Triage:** Utilizes a Reasoning Agent (ReAct pattern) to investigate incidents.
-*   **Log Analysis:** Processes log snippets to extract relevant keywords and context.
-*   **Codebase Search:** Employs a `SelectiveCodeRetriever` to search for relevant code logic based on incident context.
-*   **Root Cause Formulation:** Iteratively gathers evidence to confidently formulate root cause hypotheses.
-*   **API Interface:** Provides a FastAPI application for submitting incident jobs and retrieving investigation reports.
-*   **In-Memory Store:** Uses an in-memory database for job management and report storage.
+*   **Autonomous Incident Triage:** Employs a Senior Production Incident Engineer persona (ReAct pattern) to investigate and mitigate production failures.
+*   **Dynamic Log Analysis:** Uses `fetch_dynamic_log_snippet` to perform targeted temporal searches around incident timestamps, reducing token overhead while increasing context accuracy.
+*   **Codebase Search:** Employs a `SelectiveCodeRetriever` to correlate log patterns with specific codebase logic.
+*   **Root Cause Formulation:** Delivers evidence-backed hypotheses with quantified confidence levels and actionable remediation steps.
+*   **API Interface:** FastAPI-powered endpoints for seamless integration with monitoring webhooks (e.g., Uptime Kuma).
+*   **In-Memory Store:** Thread-safe in-memory database for efficient job management and reporting.
 
 ## Architecture
 
 The project is structured around several key components:
 
-*   **`main.py`**: The entry point for the FastAPI application, defining API routes for job creation, status retrieval, and report fetching.
-*   **`core/worker.py`**: Contains the `AgentWorker` responsible for polling the in-memory store for new jobs and orchestrating the `ReasoningAgent` to investigate incidents.
-*   **`agent/core.py`**: Implements the `ReasoningAgent`, an AI agent that uses Google's Generative AI and function calling to perform the core incident investigation logic. It follows a ReAct (Reasoning and Acting) pattern.
-*   **`memory/store.py`**: Provides an `InMemoryStore` singleton for managing incident jobs and investigation reports.
-*   **`tools/agent_tools.py`**: Defines the tools (`search_code`, `read_incident_context`, `update_investigation_report`) that the `ReasoningAgent` can invoke during its investigation loop.
-*   **`tools/retriever_logic.py`**: Implements the `SelectiveCodeRetriever`, which acts as the "eyes" of the agent, searching the codebase for relevant files and extracting code excerpts.
-*   **`config.py`**: Manages application settings, including API keys, model names, and context limits, loaded from environment variables or a `.env` file.
-*   **`schemas.py`**: Defines Pydantic models for data validation, including `UptimeKumaJobCreate` (for incoming incident data), `AnalysisJobCreate` (internal representation), and `JobCreatedResponse`.
+*   **`main.py`**: The FastAPI application entry point, utilizing modern `lifespan` handlers for managed startup and shutdown of the background worker.
+*   **`core/worker.py`**: The `AgentWorker` that orchestrates the `ReasoningAgent` investigation loop.
+*   **`agent/core.py`**: Implements the `ReasoningAgent`, a professional-grade AI agent using Google's Generative AI and native function calling for deep investigation.
+*   **`memory/store.py`**: An `InMemoryStore` singleton for tracking jobs, updates, and final reports.
+*   **`tools/agent_tools.py`**: A suite of professional engineering tools:
+    *   `fetch_dynamic_log_snippet`: Retrieves logs within specific time windows.
+    *   `search_code`: Performs semantic and keyword searches across the codebase.
+    *   `read_incident_context`: Extracts metadata and initial state from the incident job.
+    *   `update_investigation_report`: Finalizes the root cause analysis with structured findings.
+*   **`tools/retriever_logic.py`**: The logic for surgical code extraction.
+*   **`config.py`**: Pydantic-based configuration management with support for `.env` overrides.
+*   **`schemas.py`**: Strict validation models for incident payloads and responses.
 
 ## Setup and Installation
 
@@ -73,6 +86,7 @@ The `config.py` file defines the application's settings. These settings can be c
 *   `MAX_CONTEXT_FILES`: Maximum number of context files to retrieve.
 *   `MAX_CONTEXT_EXCERPT_CHARS`: Maximum characters for code excerpts.
 *   `ALLOWED_READ_ROOTS`: Comma-separated list of directories the agent is allowed to read (e.g., `src,services,config`).
+*   `LOG_DIRECTORY`: The directory where log files are stored (default: `logs`).
 
 ## API Endpoints
 
@@ -133,5 +147,28 @@ curl -X POST "http://localhost:8000/api/v1/jobs"
              }
            ],
            "metadata": {"team": "devops", "severity": "P1"}
-         }'
-```
+           }'
+           ```
+
+           ## Testing
+
+           The project uses `pytest` for testing. The test suite includes unit and integration tests for the FastAPI endpoints, using mocks for external dependencies like the Gemini AI worker.
+
+           ### Running the Tests
+
+           1.  **Install pytest** (if not already installed):
+           ```bash
+           pip install pytest
+           ```
+
+           2.  **Run the API tests**:
+           ```bash
+           PYTHONPATH=src pytest tests/test_api.py
+           ```
+
+           The tests verify:
+           *   API Health status.
+           *   Job creation and queuing.
+           *   Job retrieval and status tracking.
+           *   Integration with sample input files (e.g., `src/sources/sample_input.json`).
+           *   Error handling for missing resources.
