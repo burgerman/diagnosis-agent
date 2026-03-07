@@ -23,4 +23,5 @@ Thumbs.db
 
 # My stuff
 .env
+.env.test
 uv.lock
