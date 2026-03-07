@@ -91,6 +91,8 @@ The `config.py` file defines the application's settings. These settings can be c
 
 The API is built using FastAPI and provides the following endpoints:
 
+### Core routes (backward compatible)
+
 *   **`POST /api/v1/jobs`**
     *   **Description:** Submits a new incident investigation job.
     *   **Request Body:** `UptimeKumaJobCreate` schema (e.g., from an Uptime Kuma webhook).
@@ -107,6 +109,30 @@ The API is built using FastAPI and provides the following endpoints:
 *   **`GET /health`**
     *   **Description:** Health check endpoint.
     *   **Response:** `{"status": "alive", "storage": "in-memory"}`
+
+### Frontend compatibility routes (`/api/v1/analysis/*`)
+
+These aliases exist for compatibility with the HackCanada frontend while keeping the current in-memory architecture and worker flow.
+
+*   **`POST /api/v1/analysis/jobs`**
+    *   **Behavior:** Alias of `POST /api/v1/jobs`.
+
+*   **`GET /api/v1/analysis/jobs/{job_id}`**
+    *   **Behavior:** Alias of `GET /api/v1/jobs/{job_id}`.
+
+*   **`GET /api/v1/analysis/jobs/{job_id}/result`**
+    *   **Behavior:** Alias of `GET /api/v1/jobs/{job_id}/result`.
+
+*   **`GET /api/v1/analysis/jobs/{job_id}/summary`**
+    *   **Response:** `{ "incident_id": str, "summary_text": str, "confidence": float }` for completed reports.
+
+*   **`GET /api/v1/analysis/jobs/{job_id}/download`**
+    *   **Response:** Downloadable JSON report attachment (`analysis-report-{job_id}.json`).
+
+*   **`GET /api/v1/analysis/incidents`**
+    *   **Response shape (frontend list):**  
+      `id`, `service`, `serviceType`, `status`, `logs`, `confidence`, `proposedFix`
+    *   `proposedFix` is `{ description, steps }` when suggested commands exist, otherwise `null`.
 
 ## Usage
 
