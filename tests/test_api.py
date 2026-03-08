@@ -1,9 +1,11 @@
+import os
 import pytest
 from unittest.mock import patch
 from dotenv import load_dotenv
 
 # Load test env before importing the app module.
 load_dotenv(dotenv_path=".env.test", override=True)
+os.environ.setdefault("GEMINI_API_KEY", "test-key")
 
 from fastapi.testclient import TestClient
 import diagnosis_agent.main

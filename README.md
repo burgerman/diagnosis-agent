@@ -186,7 +186,12 @@ curl -X POST "http://localhost:8000/api/v1/jobs"
            pip install pytest
            ```
 
-           2.  **Run the API tests**:
+           2.  **Create local test env file (optional, never commit):**
+           ```bash
+           cp .env.test.example .env.test
+           ```
+
+           3.  **Run the API tests**:
            ```bash
            PYTHONPATH=src pytest tests/test_api.py
            ```
