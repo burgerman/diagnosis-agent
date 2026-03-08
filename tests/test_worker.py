@@ -90,6 +90,22 @@ Evidence indicates worker saturation and stale DB sessions.
     assert fallback_actions == []
 
 
+def test_ensure_report_with_fallback_promotes_error_like_output_to_error_report():
+    job = _job("api-connectivity")
+    ensure_report_with_fallback(
+        job,
+        agent_output="Investigation failed: connection refused while contacting Gemini API",
+    )
+    report = memory_db.get_report(job["id"])
+
+    assert report is not None
+    assert report["summary_text"].startswith("Gemini API request failed for api-connectivity")
+    assert report["confidence"] == pytest.approx(0.1, abs=1e-6)
+    assert report["report_json"]["suggested_actions"] != []
+    assert "## Investigation Steps" in report["report_json"]["summary_markdown"]
+    assert "## Solution Suggestions" in report["report_json"]["summary_markdown"]
+
+
 def test_agent_worker_calls_investigate_and_writes_report():
     job = _job("checkout-api")
     worker = AgentWorker(poll_interval_sec=0.01)
@@ -109,3 +125,24 @@ def test_agent_worker_calls_investigate_and_writes_report():
     report = memory_db.get_report(job["id"])
     assert report is not None
     assert report["summary_text"].startswith("Checkout API crashed after DB failover event.")
+
+
+def test_agent_worker_marks_job_failed_when_agent_raises():
+    job = _job("search-api")
+    worker = AgentWorker(poll_interval_sec=0.01)
+
+    class FailingAgent:
+        async def investigate(self, incident_id: str) -> str:
+            worker.stop_event.set()
+            raise RuntimeError("Gemini investigation request failed: connection refused")
+
+    worker.agent = FailingAgent()
+    asyncio.run(asyncio.wait_for(worker.run(), timeout=1.0))
+
+    stored_job = memory_db.jobs[job["id"]]
+    assert stored_job["status"] == "failed"
+    assert "Gemini investigation request failed" in stored_job["error"]
+    report = memory_db.get_report(job["id"])
+    assert report is not None
+    assert report["summary_text"].startswith("Gemini API request failed for search-api")
+    assert "## Problems Found" in report["report_json"]["summary_markdown"]

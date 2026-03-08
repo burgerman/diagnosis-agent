@@ -259,20 +259,54 @@ async def get_result(job_id: str):
 @app.get("/api/v1/analysis/jobs/{job_id}/summary")
 async def get_analysis_summary(job_id: str):
     report = _get_report_or_404(job_id)
-    incident_id = str(report.get("incident_id", "")).strip() or str(_get_job_or_404(job_id).get("incident_id", ""))
+    job = _get_job_or_404(job_id)
+    incident_id = str(report.get("incident_id", "")).strip() or str(job.get("incident_id", ""))
+    payload = job.get("request_payload", {})
+    if not isinstance(payload, dict):
+        payload = {}
+    metadata = payload.get("metadata", {})
+    if not isinstance(metadata, dict):
+        metadata = {}
+
     report_json = report.get("report_json")
     if not isinstance(report_json, dict):
         report_json = {}
+
     summary_text = _clean_text(report.get("summary_text"), max_chars=1200)
     summary_markdown = _clean_text(report_json.get("summary_markdown"), max_chars=8000)
+    suggested_actions = report_json.get("suggested_actions", [])
+    action_items = suggested_actions if isinstance(suggested_actions, list) else []
+
     try:
         confidence = float(report.get("confidence", 0.0))
     except (TypeError, ValueError):
         confidence = 0.0
+
+    target_node = (
+        _clean_text(payload.get("device_or_node"), max_chars=200)
+        or _clean_text(metadata.get("node"), max_chars=200)
+        or _clean_text(report_json.get("target_node"), max_chars=200)
+    )
+    markdown = (
+        summary_markdown
+        if summary_markdown and _structured_review_markdown(summary_markdown)
+        else _build_review_markdown(
+            incident_id=incident_id,
+            service_name=str(payload.get("service_name", "unknown-service")),
+            summary_text=summary_text,
+            confidence=confidence,
+            hypotheses=report_json.get("root_cause_hypotheses", []),
+            actions=action_items,
+            evidence_items=report_json.get("evidence", []),
+            uptime_description=_clean_text(payload.get("uptime_description"), max_chars=320),
+            target_node=target_node,
+            source_markdown=summary_markdown,
+        )
+    )
     return {
         "incident_id": incident_id,
         "summary_text": summary_text,
-        "summary_markdown": summary_markdown or summary_text,
+        "summary_markdown": markdown or summary_text,
         "confidence": confidence,
     }
 

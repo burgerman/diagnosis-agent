@@ -102,5 +102,5 @@ class ReasoningAgent:
             response = await chat.send_message(prompt)
             return response.text
         except Exception as e:
-            logger.exception("Agent loop failed")
-            return f"Investigation failed: {str(e)}"
+            logger.exception("Agent loop failed for incident %s", incident_id)
+            raise RuntimeError(f"Gemini investigation request failed: {e}") from e

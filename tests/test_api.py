@@ -126,6 +126,36 @@ def test_analysis_alias_summary_result_and_download(client):
     assert download_response.json() == report_json
 
 
+def test_analysis_summary_builds_structured_markdown_when_report_markdown_missing(client):
+    create_response = client.post("/api/v1/analysis/jobs", json=_uptime_payload(monitor="summary-fallback"))
+    assert create_response.status_code == 200
+    job_id = create_response.json()["job_id"]
+    incident_id = client.get(f"/api/v1/analysis/jobs/{job_id}").json()["incident_id"]
+
+    memory_db.upsert_report(
+        {
+            "job_id": job_id,
+            "incident_id": incident_id,
+            "summary_text": "Investigation failed: connection refused to Gemini API",
+            "report_status": "completed",
+            "confidence": 0.1,
+            "report_json": {
+                "evidence": [{"type": "monitor", "snippet": "connection refused"}],
+                "suggested_actions": [],
+            },
+        }
+    )
+
+    summary_response = client.get(f"/api/v1/analysis/jobs/{job_id}/summary")
+    assert summary_response.status_code == 200
+    summary_payload = summary_response.json()
+    assert summary_payload["summary_text"] == "Investigation failed: connection refused to Gemini API"
+    assert "## Investigation Steps" in summary_payload["summary_markdown"]
+    assert "## Problems Found" in summary_payload["summary_markdown"]
+    assert "## Other Important Info" in summary_payload["summary_markdown"]
+    assert "## Solution Suggestions" in summary_payload["summary_markdown"]
+
+
 def test_analysis_incidents_shape_and_mapping(client):
     running_job = memory_db.create_job(
         {

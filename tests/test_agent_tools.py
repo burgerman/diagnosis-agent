@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from google.genai import types
 
 from diagnosis_agent.memory.store import memory_db
-from diagnosis_agent.tools.agent_tools import update_investigation_report
+from diagnosis_agent.tools.agent_tools import search_code, update_investigation_report
 
 
 load_dotenv(dotenv_path=".env.test", override=True)
@@ -82,3 +82,8 @@ def test_update_report_filters_invalid_items_and_coerces_confidence():
         {"title": "Scale workers", "description": "Increase worker count."}
     ]
     assert "## Investigation Steps" in report["report_json"]["summary_markdown"]
+
+
+def test_search_code_tool_executes_without_import_errors():
+    results = search_code("api-service")
+    assert isinstance(results, list)

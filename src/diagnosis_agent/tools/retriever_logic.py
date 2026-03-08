@@ -1,8 +1,8 @@
 from __future__ import annotations
 import re
 from pathlib import Path
-from .config import get_settings
-from .schemas import AnalysisJobCreate, CodeContextItem
+from ..config import get_settings
+from ..schemas import AnalysisJobCreate, CodeContextItem
 
 TEXT_EXTENSIONS = {".py", ".js", ".ts", ".tsx", ".json", ".yaml", ".yml", ".toml", ".env", ".ini", ".sh", ".md"}
 
