@@ -227,6 +227,7 @@ def test_analysis_incidents_shape_and_mapping(client):
     assert incidents["inc-completed"]["proposedFix"] == {
         "description": "Restart completed-service after evidence review",
         "steps": ["docker restart completed-service"],
+        "markdown": "Restart completed-service after evidence review",
     }
 
 

@@ -129,11 +129,20 @@ async def list_analysis_incidents(limit: int = 50):
             ui_status = "issue"
 
         evidence_items = report_json.get("evidence", [])
-        logs = [
-            str(item.get("snippet", "")).strip()
-            for item in evidence_items
-            if isinstance(item, dict) and str(item.get("snippet", "")).strip()
-        ] if isinstance(evidence_items, list) else []
+        logs: list[str] = []
+        if isinstance(evidence_items, list):
+            for item in evidence_items:
+                if not isinstance(item, dict):
+                    continue
+                evidence_type = str(item.get("type", "")).strip().lower()
+                if evidence_type == "agent_output":
+                    continue
+                snippet = str(item.get("snippet", "")).strip()
+                if not snippet:
+                    continue
+                if len(snippet) > 320:
+                    snippet = f"{snippet[:317]}..."
+                logs.append(snippet)
         if not logs:
             raw_logs = payload.get("log_snippets", [])
             logs = [
@@ -141,6 +150,7 @@ async def list_analysis_incidents(limit: int = 50):
                 for item in raw_logs
                 if isinstance(item, dict) and str(item.get("line", "")).strip()
             ] if isinstance(raw_logs, list) else []
+            logs = [f"{line[:317]}..." if len(line) > 320 else line for line in logs]
         if not logs:
             fallback_line = str(payload.get("uptime_description", "No logs provided")).strip()
             logs = [fallback_line or "No logs provided"]
@@ -160,9 +170,12 @@ async def list_analysis_incidents(limit: int = 50):
         proposed_fix = None
         if steps:
             summary_text = str(report.get("summary_text", "")).strip() if report else ""
+            summary_markdown_raw = report_json.get("summary_markdown", "") if isinstance(report_json, dict) else ""
+            summary_markdown = summary_markdown_raw.strip() if isinstance(summary_markdown_raw, str) else ""
             proposed_fix = {
                 "description": summary_text or "Suggested remediation plan.",
                 "steps": steps[:8],
+                "markdown": summary_markdown or (summary_text or "Suggested remediation plan."),
             }
 
         output.append(
