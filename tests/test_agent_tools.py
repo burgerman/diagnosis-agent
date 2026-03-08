@@ -1,8 +1,9 @@
 import os
-from typing import Annotated, Any, get_args, get_origin, get_type_hints
+from typing import Any
 
 import pytest
 from dotenv import load_dotenv
+from google.genai import types
 
 from diagnosis_agent.memory.store import memory_db
 from diagnosis_agent.tools.agent_tools import update_investigation_report
@@ -21,19 +22,20 @@ def reset_memory_store():
     memory_db.reports.clear()
 
 
-def _annotated_base(annotation: Any) -> Any:
-    if get_origin(annotation) is Annotated:
-        return get_args(annotation)[0]
-    return annotation
+def test_update_report_annotations_include_array_items_for_gemini_tooling():
+    declaration = types.FunctionDeclaration.from_callable_with_api_option(
+        callable=update_investigation_report,
+        api_option="GEMINI_API",
+    )
+    params = declaration.parameters
+    assert params is not None
+    assert params.properties is not None
 
+    hypotheses_schema = params.properties["hypotheses"]
+    actions_schema = params.properties["actions"]
 
-def test_update_report_annotations_are_runtime_safe_for_tooling():
-    annotations = get_type_hints(update_investigation_report, include_extras=True)
-    hypotheses_type = _annotated_base(annotations["hypotheses"])
-    actions_type = _annotated_base(annotations["actions"])
-
-    assert isinstance([], hypotheses_type)
-    assert isinstance([], actions_type)
+    assert hypotheses_schema.items is not None
+    assert actions_schema.items is not None
 
 
 def test_update_report_filters_invalid_items_and_coerces_confidence():

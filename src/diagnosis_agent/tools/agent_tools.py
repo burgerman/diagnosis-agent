@@ -34,8 +34,8 @@ def read_incident_context(incident_id: Annotated[str, "The ID of the incident to
 def update_investigation_report(
     incident_id: Annotated[str, "The incident ID to update"],
     summary: Annotated[str, "Current summary of findings"],
-    hypotheses: Annotated[list, "List of {hypothesis, confidence, evidence_refs}"],
-    actions: Annotated[list, "List of {title, description, suggested_command}"],
+    hypotheses: Annotated[list[dict[str, Any]], "List of {hypothesis, confidence, evidence_refs}"],
+    actions: Annotated[list[dict[str, Any]], "List of {title, description, suggested_command}"],
 ) -> str:
     """Save or update the final analysis report in the in-memory store."""
     job = memory_db.get_job_by_incident(incident_id)
