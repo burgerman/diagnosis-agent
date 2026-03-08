@@ -36,6 +36,14 @@ def update_investigation_report(
     summary: Annotated[str, "Current summary of findings"],
     hypotheses: Annotated[list[dict[str, Any]], "List of {hypothesis, confidence, evidence_refs}"],
     actions: Annotated[list[dict[str, Any]], "List of {title, description, suggested_command}"],
+    summary_markdown: Annotated[
+        str,
+        (
+            "Markdown diagnosis summary with these section headers: "
+            "'## Investigation Steps', '## Problems Found', "
+            "'## Other Important Info', and '## Solution Suggestions'."
+        ),
+    ],
 ) -> str:
     """Save or update the final analysis report in the in-memory store."""
     job = memory_db.get_job_by_incident(incident_id)
@@ -52,6 +60,8 @@ def update_investigation_report(
         except (TypeError, ValueError):
             confidence_scores.append(0.0)
 
+    cleaned_markdown = str(summary_markdown).strip()
+
     report_data = {
         "job_id": job["id"],
         "incident_id": incident_id,
@@ -63,6 +73,7 @@ def update_investigation_report(
             "root_cause_hypotheses": normalized_hypotheses,
             "suggested_actions": normalized_actions,
             "summary_text": summary,
+            "summary_markdown": cleaned_markdown or summary,
         },
     }
     memory_db.upsert_report(report_data)

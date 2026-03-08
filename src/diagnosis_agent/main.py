@@ -211,7 +211,7 @@ def _build_review_markdown(
             solution_suggestions.append(f"- **{label}**: {details}")
     if not solution_suggestions:
         solution_suggestions.append(
-            "- Validate Gemini tool output, capture fresh evidence, and rerun the investigation."
+            "- No model-generated remediation actions were returned for this incident."
         )
 
     return "\n".join(
@@ -260,13 +260,19 @@ async def get_result(job_id: str):
 async def get_analysis_summary(job_id: str):
     report = _get_report_or_404(job_id)
     incident_id = str(report.get("incident_id", "")).strip() or str(_get_job_or_404(job_id).get("incident_id", ""))
+    report_json = report.get("report_json")
+    if not isinstance(report_json, dict):
+        report_json = {}
+    summary_text = _clean_text(report.get("summary_text"), max_chars=1200)
+    summary_markdown = _clean_text(report_json.get("summary_markdown"), max_chars=8000)
     try:
         confidence = float(report.get("confidence", 0.0))
     except (TypeError, ValueError):
         confidence = 0.0
     return {
         "incident_id": incident_id,
-        "summary_text": str(report.get("summary_text", "")),
+        "summary_text": summary_text,
+        "summary_markdown": summary_markdown or summary_text,
         "confidence": confidence,
     }
 

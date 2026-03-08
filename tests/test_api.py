@@ -86,6 +86,12 @@ def test_analysis_alias_summary_result_and_download(client):
         "evidence": [{"snippet": "database lock detected"}],
         "suggested_actions": [{"suggested_command": "systemctl restart alias-service"}],
         "summary_text": "Recovered service after lock cleanup",
+        "summary_markdown": (
+            "## Investigation Steps\n- Reviewed alias-service monitor and logs.\n\n"
+            "## Problems Found\n- Database lock contention caused elevated latency.\n\n"
+            "## Other Important Info\n- Confidence score: 91%.\n\n"
+            "## Solution Suggestions\n- Restart alias-service after lock cleanup."
+        ),
     }
     memory_db.upsert_report(
         {
@@ -103,6 +109,7 @@ def test_analysis_alias_summary_result_and_download(client):
     assert summary_response.json() == {
         "incident_id": incident_id,
         "summary_text": "Recovered service after lock cleanup",
+        "summary_markdown": report_json["summary_markdown"],
         "confidence": 0.91,
     }
 

@@ -132,7 +132,7 @@ These aliases exist for compatibility with the HackCanada frontend while keeping
     *   **Behavior:** Alias of `GET /api/v1/jobs/{job_id}/result`.
 
 *   **`GET /api/v1/analysis/jobs/{job_id}/summary`**
-    *   **Response:** `{ "incident_id": str, "summary_text": str, "confidence": float }` for completed reports.
+    *   **Response:** `{ "incident_id": str, "summary_text": str, "summary_markdown": str, "confidence": float }` for completed reports.
 
 *   **`GET /api/v1/analysis/jobs/{job_id}/download`**
     *   **Response:** Downloadable JSON report attachment (`analysis-report-{job_id}.json`).
@@ -140,7 +140,7 @@ These aliases exist for compatibility with the HackCanada frontend while keeping
 *   **`GET /api/v1/analysis/incidents`**
     *   **Response shape (frontend list):**  
       `id`, `service`, `serviceType`, `status`, `logs`, `confidence`, `proposedFix`
-    *   `proposedFix` is `{ description, steps }` when suggested commands exist, otherwise `null`.
+    *   `proposedFix` is `{ description, steps, markdown, destructiveActions, targetNode }` when a report exists, otherwise `null`.
 
 ## Usage
 

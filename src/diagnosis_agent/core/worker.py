@@ -10,27 +10,6 @@ from ..agent.core import ReasoningAgent
 logger = logging.getLogger(__name__)
 
 
-def _fallback_suggested_actions(service_name: str) -> list[dict[str, str]]:
-    safe_service = "".join(ch for ch in service_name if ch.isalnum() or ch in "-_.")
-    status_target = safe_service or "service"
-    return [
-        {
-            "title": "Verify monitor context",
-            "description": (
-                f"Confirm alert metadata and affected scope for {status_target} before applying changes."
-            ),
-            "suggested_command": "",
-        },
-        {
-            "title": "Collect focused evidence",
-            "description": (
-                f"Capture logs and service telemetry for {status_target} around the detection window."
-            ),
-            "suggested_command": "",
-        }
-    ]
-
-
 def _clean_text(value: Any, *, max_chars: int | None = None) -> str:
     if value is None:
         return ""
@@ -214,8 +193,6 @@ def _build_report_from_agent_output(
 
     if not summary_text:
         summary_text = _summary_from_agent_output(agent_output, service_name)
-    if not suggested_actions:
-        suggested_actions = _fallback_suggested_actions(service_name)
 
     evidence: list[dict[str, str]] = [
         {
@@ -289,7 +266,7 @@ def ensure_report_with_fallback(
         report_json = {
             "root_cause_hypotheses": [],
             "evidence": evidence,
-            "suggested_actions": _fallback_suggested_actions(service_name),
+            "suggested_actions": [],
             "summary_text": summary_text,
         }
     elif agent_output and agent_output.strip():
@@ -318,7 +295,7 @@ def ensure_report_with_fallback(
                     or "No monitor description provided.",
                 }
             ],
-            "suggested_actions": _fallback_suggested_actions(service_name),
+            "suggested_actions": [],
             "summary_text": summary_text,
         }
 

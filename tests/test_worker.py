@@ -87,9 +87,7 @@ Evidence indicates worker saturation and stale DB sessions.
     )
     assert "without a structured report" not in report["summary_text"]
     fallback_actions = report["report_json"]["suggested_actions"]
-    assert len(fallback_actions) == 2
-    assert all(action["suggested_command"] == "" for action in fallback_actions)
-    assert "Capture logs and service telemetry" in fallback_actions[1]["description"]
+    assert fallback_actions == []
 
 
 def test_agent_worker_calls_investigate_and_writes_report():

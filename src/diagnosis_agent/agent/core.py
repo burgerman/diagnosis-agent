@@ -41,12 +41,18 @@ class ReasoningAgent:
             "5. FINAL REPORTING: Use `update_investigation_report` to deliver your findings. Your report must include:\n"
             "   - A concise summary of the incident impact and flow.\n"
             "   - Evidence-backed hypotheses with quantified confidence levels.\n"
-            "   - Specific, low-risk remediation actions (e.g., config changes, rollback suggestions, or targeted code fixes).\n\n"
+            "   - Specific, low-risk remediation actions (e.g., config changes, rollback suggestions, or targeted code fixes).\n"
+            "   - `summary_markdown` with EXACT section headers:\n"
+            "     ## Investigation Steps\n"
+            "     ## Problems Found\n"
+            "     ## Other Important Info\n"
+            "     ## Solution Suggestions\n\n"
             "CONSTRAINTS:\n"
             "- Maintain professional, technical language appropriate for a high-stakes IT environment.\n"
             "- Never hallucinate code or log entries; rely strictly on tool outputs.\n"
             "- Prioritize safety: suggest non-destructive investigation or remediation steps first.\n"
-            "- If evidence is inconclusive, state exactly what information is missing."
+            "- If evidence is inconclusive, state exactly what information is missing.\n"
+            "- Do not return plain text final output; populate the markdown in `update_investigation_report`."
         )
 
     async def investigate(self, incident_id: str):

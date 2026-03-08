@@ -33,9 +33,11 @@ def test_update_report_annotations_include_array_items_for_gemini_tooling():
 
     hypotheses_schema = params.properties["hypotheses"]
     actions_schema = params.properties["actions"]
+    markdown_schema = params.properties["summary_markdown"]
 
     assert hypotheses_schema.items is not None
     assert actions_schema.items is not None
+    assert markdown_schema.type == types.Type.STRING
 
 
 def test_update_report_filters_invalid_items_and_coerces_confidence():
@@ -57,6 +59,16 @@ def test_update_report_filters_invalid_items_and_coerces_confidence():
             {"title": "Scale workers", "description": "Increase worker count."},
             "bad-action-item",
         ],
+        summary_markdown=(
+            "## Investigation Steps\n"
+            "- Checked DB saturation indicators.\n\n"
+            "## Problems Found\n"
+            "- DB pool contention.\n\n"
+            "## Other Important Info\n"
+            "- Confidence score: 60%.\n\n"
+            "## Solution Suggestions\n"
+            "- Scale workers."
+        ),
     )
 
     assert result == "Report updated successfully in memory."
@@ -69,3 +81,4 @@ def test_update_report_filters_invalid_items_and_coerces_confidence():
     assert report["report_json"]["suggested_actions"] == [
         {"title": "Scale workers", "description": "Increase worker count."}
     ]
+    assert "## Investigation Steps" in report["report_json"]["summary_markdown"]
