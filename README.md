@@ -76,6 +76,14 @@ GEMINI_API_KEY="YOUR_GEMINI_API_KEY"
 
 Replace `"YOUR_GEMINI_API_KEY"` with your actual Google Gemini API key. You can obtain one from the [Google AI Studio](https://makersuite.google.com/app/apikey).
 
+You can also create `.env.local` to override values from `.env` on your machine (for example when rotating API keys).  
+Order of precedence in this app is:
+1. real environment variables
+2. `.env.local`
+3. `.env`
+
+After changing either file, restart the API process so the worker picks up the new credentials.
+
 ## Configuration
 
 The `config.py` file defines the application's settings. These settings can be configured via environment variables or a `.env` file. Key configurable settings include:

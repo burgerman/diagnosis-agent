@@ -1,10 +1,13 @@
 from __future__ import annotations
+
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Annotated, Any
+
 from ..memory.store import memory_db
 
-def search_code(query: Annotated[str, "The keyword or symbol to search for in the codebase"]) -> list[dict]:
+
+def search_code(query: Annotated[str, "The keyword or symbol to search for in the codebase"]) -> list:
     """Search the codebase for specific keywords and return matching excerpts."""
     from .retriever_logic import SelectiveCodeRetriever
     from ..schemas import AnalysisJobCreate, UptimeStatus
@@ -31,26 +34,36 @@ def read_incident_context(incident_id: Annotated[str, "The ID of the incident to
 def update_investigation_report(
     incident_id: Annotated[str, "The incident ID to update"],
     summary: Annotated[str, "Current summary of findings"],
-    hypotheses: Annotated[list[dict], "List of {hypothesis, confidence, evidence_refs}"],
-    actions: Annotated[list[dict], "List of {title, description, suggested_command}"]
+    hypotheses: Annotated[list, "List of {hypothesis, confidence, evidence_refs}"],
+    actions: Annotated[list, "List of {title, description, suggested_command}"],
 ) -> str:
     """Save or update the final analysis report in the in-memory store."""
     job = memory_db.get_job_by_incident(incident_id)
     if not job:
         return "Error: Could not find job for incident."
-        
+
+    normalized_hypotheses = [item for item in hypotheses if isinstance(item, dict)]
+    normalized_actions = [item for item in actions if isinstance(item, dict)]
+
+    confidence_scores: list[float] = []
+    for item in normalized_hypotheses:
+        try:
+            confidence_scores.append(float(item.get("confidence", 0)))
+        except (TypeError, ValueError):
+            confidence_scores.append(0.0)
+
     report_data = {
         "job_id": job["id"],
         "incident_id": incident_id,
         "summary_text": summary,
         "report_status": "completed",
-        "confidence": max([h.get("confidence", 0) for h in hypotheses]) if hypotheses else 0,
+        "confidence": max(confidence_scores) if confidence_scores else 0.0,
         "model_info": {"provider": "google-genai", "agent": "ReasoningAgentV2"},
         "report_json": {
-            "root_cause_hypotheses": hypotheses,
-            "suggested_actions": actions,
-            "summary_text": summary
-        }
+            "root_cause_hypotheses": normalized_hypotheses,
+            "suggested_actions": normalized_actions,
+            "summary_text": summary,
+        },
     }
     memory_db.upsert_report(report_data)
     return "Report updated successfully in memory."

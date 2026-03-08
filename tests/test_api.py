@@ -168,7 +168,14 @@ def test_analysis_incidents_shape_and_mapping(client):
             "summary_text": "degraded summary",
             "report_status": "completed",
             "confidence": 0.42,
-            "report_json": {"suggested_actions": []},
+            "report_json": {
+                "suggested_actions": [
+                    {
+                        "title": "Check connection limits",
+                        "description": "Compare DB connection usage and worker concurrency.",
+                    }
+                ],
+            },
         }
     )
 
@@ -217,18 +224,28 @@ def test_analysis_incidents_shape_and_mapping(client):
     assert incidents["inc-degraded"]["status"] == "warning"
     assert incidents["inc-degraded"]["logs"] == ["degraded payload log"]
     assert incidents["inc-degraded"]["confidence"] == 0.42
-    assert incidents["inc-degraded"]["proposedFix"] is None
+    degraded_fix = incidents["inc-degraded"]["proposedFix"]
+    assert degraded_fix is not None
+    assert degraded_fix["steps"] == ["Check connection limits: Compare DB connection usage and worker concurrency."]
+    assert "## Investigation Steps" in degraded_fix["markdown"]
+    assert "## Problems Found" in degraded_fix["markdown"]
+    assert "## Other Important Info" in degraded_fix["markdown"]
+    assert "## Solution Suggestions" in degraded_fix["markdown"]
 
     assert incidents["inc-completed"]["status"] == "issue"
     assert incidents["inc-completed"]["logs"] == ["critical stack trace line"]
     assert incidents["inc-completed"]["service"] == "completed-service"
     assert incidents["inc-completed"]["serviceType"] == "api"
     assert incidents["inc-completed"]["confidence"] == 0.87
-    assert incidents["inc-completed"]["proposedFix"] == {
-        "description": "Restart completed-service after evidence review",
-        "steps": ["docker restart completed-service"],
-        "markdown": "Restart completed-service after evidence review",
-    }
+    completed_fix = incidents["inc-completed"]["proposedFix"]
+    assert completed_fix is not None
+    assert completed_fix["description"] == "Restart completed-service after evidence review"
+    assert completed_fix["steps"] == ["docker restart completed-service"]
+    assert completed_fix["destructiveActions"] == []
+    assert completed_fix["targetNode"] == ""
+    assert "## Investigation Steps" in completed_fix["markdown"]
+    assert "## Solution Suggestions" in completed_fix["markdown"]
+    assert "docker restart completed-service" in completed_fix["markdown"]
 
 
 def test_analysis_cors_preflight(client):
