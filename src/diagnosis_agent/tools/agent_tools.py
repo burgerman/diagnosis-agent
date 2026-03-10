@@ -26,24 +26,17 @@ def search_code(query: Annotated[str, "The keyword or symbol to search for in th
     results = retriever.retrieve(dummy_payload)
     return [r.model_dump() for r in results]
 
-def read_incident_context(incident_id: Annotated[str, "The ID of the incident to investigate"]) -> dict:
+def read_incident_context(incident_id: str) -> dict:
     """Read the full incident details and logs from the in-memory store."""
     job = memory_db.get_job_by_incident(incident_id)
     return job if job else {"error": "Incident not found"}
 
 def update_investigation_report(
-    incident_id: Annotated[str, "The incident ID to update"],
-    summary: Annotated[str, "Current summary of findings"],
-    hypotheses: Annotated[list[dict[str, Any]], "List of {hypothesis, confidence, evidence_refs}"],
-    actions: Annotated[list[dict[str, Any]], "List of {title, description, suggested_command}"],
-    summary_markdown: Annotated[
-        str,
-        (
-            "Markdown diagnosis summary with these section headers: "
-            "'## Investigation Steps', '## Problems Found', "
-            "'## Other Important Info', and '## Solution Suggestions'."
-        ),
-    ],
+    incident_id: str,
+    summary: str,
+    hypotheses: list[dict[str, Any]],
+    actions: list[dict[str, Any]],
+    summary_markdown: str,
 ) -> str:
     """Save or update the final analysis report in the in-memory store."""
     job = memory_db.get_job_by_incident(incident_id)

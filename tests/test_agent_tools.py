@@ -87,3 +87,17 @@ def test_update_report_filters_invalid_items_and_coerces_confidence():
 def test_search_code_tool_executes_without_import_errors():
     results = search_code("api-service")
     assert isinstance(results, list)
+
+
+def test_search_code_annotations_for_gemini_tooling():
+    declaration = types.FunctionDeclaration.from_callable_with_api_option(
+        callable=search_code,
+        api_option="GEMINI_API",
+    )
+    params = declaration.parameters
+    assert params is not None
+    assert params.properties is not None
+
+    query_schema = params.properties["query"]
+    assert query_schema.type == types.Type.STRING
+
